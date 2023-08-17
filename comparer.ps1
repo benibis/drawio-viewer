@@ -34,15 +34,15 @@ foreach ($file1 in $files1) {
         
         foreach ($diffItem in $xmlDiff) {
             if ($diffItem.SideIndicator -eq '=>') {
-                $addedTag = $xml2.SelectSingleNode($diffItem.InputObject)
+                $addedTag = (Select-Xml -Xml $xml2 -XPath $diffItem.InputObject).Node
                 $differences += "added $($addedTag.Name) $($addedTag.Attributes['value'].Value)"
             } elseif ($diffItem.SideIndicator -eq '<=') {
-                $removedTag = $xml1.SelectSingleNode($diffItem.InputObject)
+                $removedTag = (Select-Xml -Xml $xml1 -XPath $diffItem.InputObject).Node
                 $differences += "removed $($removedTag.Name) $($removedTag.Attributes['value'].Value)"
             } else {
-                $tag = $xml1.SelectSingleNode($diffItem.InputObject)
+                $tag = (Select-Xml -Xml $xml1 -XPath $diffItem.InputObject).Node
                 $value1 = $tag.Attributes['value'].Value
-                $value2 = $xml2.SelectSingleNode($diffItem.InputObject).Attributes['value'].Value
+                $value2 = (Select-Xml -Xml $xml2 -XPath $diffItem.InputObject).Node.Attributes['value'].Value
                 if ($value1 -ne $value2) {
                     $differences += "$($tag.Name): $value1 -> $value2"
                 }
