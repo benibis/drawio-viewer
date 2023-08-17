@@ -10,7 +10,7 @@ function Get-DrawioFileContent {
     
     $content = Get-Content -Path $filePath -Raw
     $xml = [xml]$content
-    return $xml.OuterXml
+    return $xml
 }
 
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
@@ -25,12 +25,30 @@ foreach ($file1 in $files1) {
     $matchingFile = $files2 | Where-Object { $_.Name -eq $file1.Name -and $_.FullName -replace [regex]::Escape($path2), $path1 }
     
     if ($matchingFile) {
-        $content1 = Get-DrawioFileContent -filePath $file1.FullName
-        $content2 = Get-DrawioFileContent -filePath $matchingFile.FullName
+        $xml1 = Get-DrawioFileContent -filePath $file1.FullName
+        $xml2 = Get-DrawioFileContent -filePath $matchingFile.FullName
         
-        if ($content1 -ne $content2) {
-            $diffOutput = Compare-Object $content1 $content2
-            $outputLines += ("Difference found in $($file1.FullName) and $($matchingFile.FullName):" + $diffOutput.InputObject)
+        $xmlDiff = Compare-Object $xml1.InnerXml $xml2.InnerXml
+        
+        $differences = @()
+        
+        foreach ($diffItem in $xmlDiff) {
+            if ($diffItem.SideIndicator -eq '=>') {
+                $differences += "added $($xml2.SelectSingleNode($diffItem.InputObject).Name) $($xml2.SelectSingleNode($diffItem.InputObject).Attributes['value'].Value)"
+            } elseif ($diffItem.SideIndicator -eq '<=') {
+                $differences += "removed $($xml1.SelectSingleNode($diffItem.InputObject).Name) $($xml1.SelectSingleNode($diffItem.InputObject).Attributes['value'].Value)"
+            } else {
+                $tag = $xml1.SelectSingleNode($diffItem.InputObject).Name
+                $value1 = $xml1.SelectSingleNode($diffItem.InputObject).Attributes['value'].Value
+                $value2 = $xml2.SelectSingleNode($diffItem.InputObject).Attributes['value'].Value
+                if ($value1 -ne $value2) {
+                    $differences += "$tag: $value1 -> $value2"
+                }
+            }
+        }
+        
+        if ($differences.Count -gt 0) {
+            $outputLines += ("Differences found in $($file1.FullName) and $($matchingFile.FullName):" + $differences)
         }
     } else {
         $outputLines += ("File $($file1.FullName) does not exist in the second directory.")
@@ -41,7 +59,13 @@ foreach ($file2 in $files2) {
     $matchingFile = $files1 | Where-Object { $_.Name -eq $file2.Name -and $_.FullName -replace [regex]::Escape($path1), $path2 }
     
     if (!$matchingFile) {
-        $outputLines += ("File $($file2.FullName) does not exist in the first directory.")
+        $xml2 = Get-DrawioFileContent -filePath $file2.FullName
+        
+        $addedTags = $xml2.SelectNodes("//*[not(ancestor::*)]")
+        
+        foreach ($tag in $addedTags) {
+            $outputLines += ("added $($tag.Name) $($tag.Attributes['value'].Value)")
+        }
     }
 }
 
