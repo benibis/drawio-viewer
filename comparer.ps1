@@ -21,9 +21,8 @@ function Compare-DrawioFiles {
     $differences = @()
 
     $xml1.SelectNodes("//mxfile/*") | ForEach-Object {
-        $tag = $_
-        $tagName = $tag.Name
-        $value1 = $tag.Attributes["value"].Value
+        $tagName = $_.Name
+        $value1 = $_.Attributes["value"].Value
         $value2 = $xml2.SelectSingleNode("//mxfile/$tagName").Attributes["value"].Value
 
         if ($value1 -ne $value2) {
