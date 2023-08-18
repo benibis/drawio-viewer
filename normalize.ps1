@@ -20,7 +20,10 @@ function Transform-DrawioFile {
 
     $output = New-Object System.IO.StringWriter
 
-    $xmlReader.MoveToContent()
+    # Move to the next node, skipping the BOM if present
+    while ($xmlReader.NodeType -eq [System.Xml.XmlNodeType]::Whitespace) {
+        $xmlReader.Read()
+    }
 
     $xslt.Transform($xmlReader, $null, $output)
 
