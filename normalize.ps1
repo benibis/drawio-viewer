@@ -13,24 +13,19 @@ function Transform-DrawioFile {
         [string]$xsltFilePath
     )
 
-    $xmlReader = [System.Xml.XmlReader]::Create($xmlFilePath)
+    $xmlDoc = New-Object System.Xml.XmlDocument
+    $xmlDoc.Load($xmlFilePath)
 
     $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
     $xslt.Load($xsltFilePath)
 
     $output = New-Object System.IO.StringWriter
 
-    # Move to the next node, skipping the BOM if present
-    while ($xmlReader.NodeType -eq [System.Xml.XmlNodeType]::Whitespace) {
-        $xmlReader.Read()
-    }
-
-    $xslt.Transform($xmlReader, $null, $output)
-
-    $xmlReader.Close()
+    $xslt.Transform($xmlDoc, $null, $output)
 
     $output.ToString()
 }
+
 
 $normalizedPath1 = "${path1}-normalized"
 $normalizedPath2 = "${path2}-normalized"
