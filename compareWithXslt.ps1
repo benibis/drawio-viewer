@@ -59,4 +59,13 @@ foreach ($file2 in $files2) {
     $matchingFile = $files1 | Where-Object { $_.Name -eq $file2.Name -and $_.FullName -replace [regex]::Escape($path1), $path2 }
 
     if (!$matchingFile) {
-        $outputLines += ("File $($file2
+        $outputLines += ("File $($file2.FullName) does not exist in the first directory.")
+    }
+}
+
+if ($outputLines.Count -gt 0) {
+    $outputLines | Set-Content -Path $outputFilePath
+    Write-Host "Differences written to $($outputFilePath)"
+} else {
+    Write-Host "No differences found."
+}
