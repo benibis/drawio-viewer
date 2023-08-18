@@ -22,8 +22,8 @@ function Transform-DrawioFile {
     $xslt.Transform($xmlReader, $null, $output)
 
     $xmlReader.Close()
-    
-    return $output.ToString()
+
+    $output.ToString()
 }
 
 $files1 = Get-ChildItem -Path $path1 -Filter "*.drawio" -File -Recurse
@@ -59,13 +59,4 @@ foreach ($file2 in $files2) {
     $matchingFile = $files1 | Where-Object { $_.Name -eq $file2.Name -and $_.FullName -replace [regex]::Escape($path1), $path2 }
 
     if (!$matchingFile) {
-        $outputLines += ("File $($file2.FullName) does not exist in the first directory.")
-    }
-}
-
-if ($outputLines.Count -gt 0) {
-    $outputLines | Set-Content -Path $outputFilePath
-    Write-Host "Differences written to $($outputFilePath)"
-} else {
-    Write-Host "No differences found."
-}
+        $outputLines += ("File $($file2
