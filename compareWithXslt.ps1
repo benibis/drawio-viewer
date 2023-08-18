@@ -13,15 +13,16 @@ function Transform-DrawioFile {
         [string]$xsltFilePath
     )
 
-    $xml = New-Object System.Xml.XmlDocument
-    $xml.Load($xmlFilePath)
+    $xmlReader = [System.Xml.XmlReader]::Create($xmlFilePath)
 
     $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
     $xslt.Load($xsltFilePath)
 
     $output = New-Object System.IO.StringWriter
-    $xslt.Transform($xml, $null, $output)
+    $xslt.Transform($xmlReader, $null, $output)
 
+    $xmlReader.Close()
+    
     return $output.ToString()
 }
 
