@@ -5,7 +5,7 @@ param(
 )
 
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-$outputFilePath = Join-Path $path2 ("$timestamp-drawio-compare.txt")
+$outputFilePath = Join-Path (Get-Item $path2).Parent.FullName ("$timestamp-drawio-compare.txt")
 
 function Transform-DrawioFile {
     param(
