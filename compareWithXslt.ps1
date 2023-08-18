@@ -19,11 +19,22 @@ function Transform-DrawioFile {
     $xslt.Load($xsltFilePath)
 
     $output = New-Object System.IO.StringWriter
+
+    # Store the initial position of the XmlReader
+    $initialPosition = $xmlReader.NodeType
+    $xmlReader.MoveToContent()
+
     $xslt.Transform($xmlReader, $null, $output)
 
+    # Reset the XmlReader position
+    $xmlReader.Close()
+    $xmlReader = [System.Xml.XmlReader]::Create($xmlFilePath)
+    $xmlReader.MoveToContent() | Out-Null
+
+    $outputString = $output.ToString()
     $xmlReader.Close()
 
-    $output.ToString()
+    $outputString
 }
 
 $files1 = Get-ChildItem -Path $path1 -Filter "*.drawio" -File -Recurse
