@@ -1,41 +1,10 @@
 param(
     [string]$path1,
-    [string]$path2,
-    [string]$xsltFilePath
+    [string]$path2
 )
 
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
 $outputFilePath = Join-Path (Get-Item $path2).Parent.FullName ("$timestamp-drawio-compare.txt")
-
-function Transform-DrawioFile {
-    param(
-        [string]$xmlFilePath,
-        [string]$xsltFilePath
-    )
-
-    $xmlReader = [System.Xml.XmlReader]::Create($xmlFilePath)
-
-    $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
-    $xslt.Load($xsltFilePath)
-
-    $output = New-Object System.IO.StringWriter
-
-    # Store the initial position of the XmlReader
-    $initialPosition = $xmlReader.NodeType
-    $xmlReader.MoveToContent()
-
-    $xslt.Transform($xmlReader, $null, $output)
-
-    # Reset the XmlReader position
-    $xmlReader.Close()
-    $xmlReader = [System.Xml.XmlReader]::Create($xmlFilePath)
-    $xmlReader.MoveToContent() | Out-Null
-
-    $outputString = $output.ToString()
-    $xmlReader.Close()
-
-    $outputString
-}
 
 $files1 = Get-ChildItem -Path $path1 -Filter "*.drawio" -File -Recurse
 $files2 = Get-ChildItem -Path $path2 -Filter "*.drawio" -File -Recurse
@@ -46,8 +15,8 @@ foreach ($file1 in $files1) {
     $matchingFile = $files2 | Where-Object { $_.Name -eq $file1.Name -and $_.FullName -replace [regex]::Escape($path2), $path1 }
 
     if ($matchingFile) {
-        $xml1 = Transform-DrawioFile -xmlFilePath $file1.FullName -xsltFilePath $xsltFilePath
-        $xml2 = Transform-DrawioFile -xmlFilePath $matchingFile.FullName -xsltFilePath $xsltFilePath
+        $xml1 = Get-Content -Path $file1.FullName -Raw
+        $xml2 = Get-Content -Path $matchingFile.FullName -Raw
 
         if ($xml1 -ne $xml2) {
             $outputLines += ("Differences found in $($file1.FullName) and $($matchingFile.FullName):")
